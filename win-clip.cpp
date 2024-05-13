@@ -17,7 +17,7 @@ void help() {
 	std::cout << "-h\t display this help and exit." << std::endl;
 	std::cout << "-n\t print message from system clipboard with newline in `paste` mode." << std::endl;
 	std::cout << "-m\t pass message you want to copy to system clipboard in `copy` mode." << std::endl;
-	std::cout << "-u\t print clipboard content encoded by UTF8 if this flag was specified in `paste` mode." << std::endl;
+	std::cout << "-u\t print or receive content will be treated as UTF8 encoded if this flag was specified in `paste` mode." << std::endl;
 	std::cout << std::endl << "example:" << std::endl;
 	std::cout << "win-clip -h \t display help." << std::endl;
 	std::cout << "win-clip copy -m hello world \t copy 'hello world' to system clipboard." << std::endl;
@@ -40,16 +40,84 @@ void help() {
 	exit(0);
 }
 
-int copy_to_clipboard(std::string& msg) {
+std::wstring utf8_to_wstr(const std::string& utf8string) {
+	if (utf8string.empty()) return std::wstring();
+
+	int wideSize = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		utf8string.c_str(),
+		-1,
+		nullptr,
+		0
+	);
+
+	if (wideSize == 0) {
+		std::cerr << "Failed to get wideSzie" << std::endl;
+		return std::wstring();
+	}
+
+	std::wstring wstr(wideSize, 0); // 预分配宽字符字符串  
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		utf8string.c_str(),
+		-1,
+		&wstr[0],         // 输出缓冲区  
+		wideSize         // 宽度  
+	);
+
+	return wstr;
+}
+
 #define FAIL() {CloseClipboard();return 1;}
+int copy_UTF8_to_clipboard(std::string& msg) {
+
 	if (!OpenClipboard(nullptr)) {
 		std::cerr << "Failed to open clipboard" << std::endl;
 		return 1;
 	}
 
 	EmptyClipboard();
+	auto wmsg = utf8_to_wstr(msg);
+	auto data = wmsg.c_str();
+	size_t dataSize = wcslen(data) + 1;
 
-	const char* data = msg.c_str();
+	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dataSize * sizeof(wchar_t));
+	if (!hGlobal) {
+		std::cerr << "Failed to allocate memory" << std::endl;
+		FAIL();
+	}
+
+	wchar_t* pGlobal = static_cast<wchar_t*>(GlobalLock(hGlobal));
+	if (!pGlobal) {
+		std::cerr << "Failed to lock memory" << std::endl;
+		GlobalFree(hGlobal);
+		FAIL();
+	}
+
+	wcscpy_s(pGlobal, dataSize, data);
+	GlobalUnlock(hGlobal);
+
+
+	if (SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
+		std::cerr << "Failed to set clipboard data" << std::endl;
+		GlobalFree(hGlobal);
+		FAIL();
+	}
+
+	CloseClipboard();
+	return 0;
+
+}
+int copy_ANSI_to_clipboard(std::string& msg) {
+	if (!OpenClipboard(nullptr)) {
+		std::cerr << "Failed to open clipboard" << std::endl;
+		return 1;
+	}
+
+	EmptyClipboard();
+	auto data = msg.c_str();
 	size_t dataSize = strlen(data) + 1;
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, dataSize);
@@ -58,7 +126,7 @@ int copy_to_clipboard(std::string& msg) {
 		FAIL();
 	}
 
-	LPSTR pGlobal = (LPSTR)GlobalLock(hGlobal);
+	LPSTR pGlobal = static_cast<LPSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
 		std::cerr << "Failed to lock memory" << std::endl;
 		GlobalFree(hGlobal);
@@ -68,6 +136,7 @@ int copy_to_clipboard(std::string& msg) {
 	memcpy(pGlobal, data, dataSize);
 	GlobalUnlock(hGlobal);
 
+
 	if (SetClipboardData(CF_TEXT, hGlobal) == nullptr) {
 		std::cerr << "Failed to set clipboard data" << std::endl;
 		GlobalFree(hGlobal);
@@ -76,8 +145,9 @@ int copy_to_clipboard(std::string& msg) {
 
 	CloseClipboard();
 	return 0;
-#undef FAIL
 }
+#undef FAIL
+
 
 int paste_ascii_from_clipboard(std::string& s) {
 	HANDLE hData = GetClipboardData(CF_TEXT);
@@ -177,15 +247,23 @@ std::string paste_from_clipboard(bool isUTF8) {
 
 
 
-void copy(std::string& arg_msg) {
+void copy(std::string& arg_msg, bool isUTF8IN) {
 	std::string a_msg;
 	if (arg_msg.empty()) {
-		std::cout << "read from stdin to a_msg" << std::endl;
+		std::string in_str{ (std::istreambuf_iterator<char>(std::cin)),std::istreambuf_iterator<char>() };
+		a_msg = in_str;
 	}
 	else {
 		a_msg = arg_msg;
 	}
-	int ret = copy_to_clipboard(a_msg);
+	int ret;
+	if (isUTF8IN) {
+		ret = copy_UTF8_to_clipboard(a_msg);
+	}
+	else {
+		ret = copy_ANSI_to_clipboard(a_msg);
+
+	}
 	exit(ret);
 }
 void paste(bool newline, bool isUTF8) {
@@ -203,7 +281,7 @@ std::string prog_name;
 std::string sub_command;
 std::string msg_opt;
 bool newline_opt;
-bool UTF8Output_opt;
+bool UTF8IO_opt;
 bool help_opt;
 
 int main(int argc, char* argv[]) {
@@ -235,14 +313,14 @@ int main(int argc, char* argv[]) {
 	for (int i = 2; i < args.size(); i++) {
 		std::string arg = args[i];
 		if (arg == "-h") help_opt = true;
-		else if (arg == "-u") UTF8Output_opt = true;
+		else if (arg == "-u") UTF8IO_opt = true;
 		else if (arg == "-n") newline_opt = true;
 		else if (arg == "-m") {
 			for (int j = i + 1; j < args.size(); j++) {
-                if(j != i+1)
-                    msg_opt.append(" ");
+				if (j != i + 1)
+					msg_opt.append(" ");
 
-                msg_opt.append(args[j]);
+				msg_opt.append(args[j]);
 			}
 
 			break;
@@ -253,10 +331,10 @@ int main(int argc, char* argv[]) {
 		help();
 
 	if (sub_command == "copy") {
-		copy(msg_opt);
+		copy(msg_opt, UTF8IO_opt);
 	}
 	else if (sub_command == "paste") {
-		paste(newline_opt, UTF8Output_opt);
+		paste(newline_opt, UTF8IO_opt);
 	}
 	help();
 	return 0;
