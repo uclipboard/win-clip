@@ -151,8 +151,8 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 }
 
 
-
-int paste_ascii_from_clipboard(std::string& s) {
+// ascii content
+int get_clipboard_content(std::string& s) {
 	HANDLE hData = GetClipboardData(CF_TEXT);
 	if (hData == nullptr) {
 		std::cerr << "There is no data in the clipboard." << std::endl;
@@ -168,35 +168,8 @@ int paste_ascii_from_clipboard(std::string& s) {
 	GlobalUnlock(hData);
 	return 0;
 }
-
-std::string wstr_to_ANSI_str(std::wstring& wstr) {
-
-	auto cs = wstr.c_str();
-	
-	auto ANSI_str_len = WideCharToMultiByte(CP_ACP, 0, cs, -1, nullptr, 0, nullptr, nullptr);
-	std::string s(ANSI_str_len,0);
-	if (ANSI_str_len > 0) {
-		WideCharToMultiByte(CP_ACP, 0, cs, -1, &s[0], ANSI_str_len, nullptr, nullptr);
-
-	}
-	return s;
-}
-
-std::string wstr_to_UTF8_str(std::wstring& wstr) {
-
-	auto cs = wstr.c_str();
-	auto UTF8_str_len = WideCharToMultiByte(CP_UTF8, 0, cs, -1, nullptr, 0, nullptr, nullptr);
-	std::string s(UTF8_str_len,0);
-	if (UTF8_str_len > 0) {
-		
-		WideCharToMultiByte(CP_UTF8, 0, cs, -1, &s[0], UTF8_str_len, nullptr, nullptr);
-	}
-	return s;
-}
-
-
-
-int paste_wstring_from_clipboard(HANDLE& hData, std::wstring& s) {
+// wchar content
+int get_clipboard_content(HANDLE& hData, std::wstring& s) {
 	// Lock the clipboard data to get a pointer to it
 	LPWSTR wcbText = static_cast<LPWSTR>(GlobalLock(hData));
 	if (wcbText == nullptr) {
@@ -208,6 +181,22 @@ int paste_wstring_from_clipboard(HANDLE& hData, std::wstring& s) {
 	// Unlock the clipboard data
 	GlobalUnlock(hData);
 	return 0;
+}
+
+std::string wstr_to_code_page_string(std::wstring& wstr,const int code_page = CP_ACP) {
+
+	auto cs = wstr.c_str();
+	// it caculate out the c-style string end '\0'
+	auto UTF8_str_len = WideCharToMultiByte(code_page, 0, cs, -1, nullptr, 0, nullptr, nullptr);
+	std::string s(UTF8_str_len,0);
+	if (UTF8_str_len > 0) {
+		
+		WideCharToMultiByte(code_page, 0, cs, -1, &s[0], UTF8_str_len, nullptr, nullptr);
+	}
+	if (!s.empty() && s.back() == '\0') {
+		s.resize(s.size() - 1);
+	}
+	return s;
 }
 
 std::string paste_from_clipboard(bool isUTF8) {
@@ -222,17 +211,17 @@ std::string paste_from_clipboard(bool isUTF8) {
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == nullptr) {
 		// If we can't get CF_UNICODETEXT, try getting CF_TEXT
-		paste_ascii_from_clipboard(s);
+		get_clipboard_content(s);
 	}
 	else {
 
 		std::wstring ws;
-		paste_wstring_from_clipboard(hData, ws);
+		get_clipboard_content(hData, ws);
 		if (isUTF8) {
-			s = wstr_to_UTF8_str(ws);
+			s = wstr_to_code_page_string(ws,CP_UTF8);
 		}
 		else {
-			s = wstr_to_ANSI_str(ws);
+			s = wstr_to_code_page_string(ws);
 		}
 	}
 
