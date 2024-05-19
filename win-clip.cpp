@@ -17,7 +17,7 @@ void help() {
 	std::cout << "-h\t display this help and exit." << std::endl;
 	std::cout << "-n\t print message from system clipboard with newline in `paste` mode." << std::endl;
 	std::cout << "-m\t pass message you want to copy to system clipboard in `copy` mode." << std::endl;
-	std::cout << "-u\t print or receive content will be treated as UTF8 encoded if this flag was specified in `paste` mode." << std::endl;
+	std::cout << "-u\t print or receive content will be treated as UTF8 encoded ." << std::endl;
 	std::cout << std::endl << "example:" << std::endl;
 	std::cout << "win-clip -h \t display help." << std::endl;
 	std::cout << "win-clip copy -m hello world \t copy 'hello world' to system clipboard." << std::endl;
@@ -199,24 +199,23 @@ std::string wstr_to_code_page_string(std::wstring& wstr,const int code_page = CP
 	return s;
 }
 
-std::string paste_from_clipboard(bool isUTF8) {
-	std::string s{};
-
+int paste_from_clipboard(std::string& s,bool isUTF8) {
+	int call_return{};
 	// Open the clipboard
 	if (!OpenClipboard(nullptr)) {
 		std::cerr << "Unable to open the clipboard." << std::endl;
-		return s;
+		return 1;
 	}
 	// Try to get the clipboard data as CF_UNICODETEXT first
 	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 	if (hData == nullptr) {
 		// If we can't get CF_UNICODETEXT, try getting CF_TEXT
-		get_clipboard_content(s);
+		call_return = get_clipboard_content(s);
 	}
 	else {
 
 		std::wstring ws;
-		get_clipboard_content(hData, ws);
+		call_return = get_clipboard_content(hData, ws);
 		if (isUTF8) {
 			s = wstr_to_code_page_string(ws,CP_UTF8);
 		}
@@ -227,7 +226,7 @@ std::string paste_from_clipboard(bool isUTF8) {
 
 	// Close the clipboard
 	CloseClipboard();
-	return s;
+	return call_return;
 }
 
 
@@ -253,13 +252,19 @@ void copy(std::string& arg_msg, bool isUTF8IN) {
 	exit(ret);
 }
 void paste(bool newline, bool isUTF8) {
-	std::cout << paste_from_clipboard(isUTF8);
+	std::string clipboard{};
+	int ret = paste_from_clipboard(clipboard,isUTF8);
+	if (ret) {
+		exit(ret);
+	}
+	std::cout << clipboard;
 	if (newline) {
 		std::cout << std::endl;
 	}
 	else {
 		std::cout << std::flush;
 	}
+
 	exit(0);
 }
 
