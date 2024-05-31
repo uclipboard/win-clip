@@ -11,13 +11,14 @@ const std::string ext_execute{ ".exe" };
 
 
 void help() {
-	std::cout << "win-clip (https://github.com/dangjinghao/win-clip): A part of uclipboard." << std::endl;
+	std::cout << "win-clip (https://github.com/uclipboard/win-clip): A part of uclipboard." << std::endl;
 	std::cout << "Usage: win-clip [MODE] [OPTION] ..." << std::endl;
 	std::cout << "options:" << std::endl;
 	std::cout << "-h\t display this help and exit." << std::endl;
 	std::cout << "-n\t print message from system clipboard with newline in `paste` mode." << std::endl;
 	std::cout << "-m\t pass message you want to copy to system clipboard in `copy` mode." << std::endl;
-	std::cout << "-u\t print or receive content will be treated as UTF8 encoded ." << std::endl;
+	std::cout << "-u\t print or receive text will be treated as UTF-8 encoded. " << std::endl;
+	std::cout << "\t read UTF-8 encoding text from stdin and convert to ANSI (and copy to clipboard).\n\tread ANSI encoded text from clipboard, convert to UTF-8 encoding and print it to stdout." << std::endl;
 	std::cout << std::endl << "example:" << std::endl;
 	std::cout << "win-clip -h \t display help." << std::endl;
 	std::cout << "win-clip copy -m hello world \t copy 'hello world' to system clipboard." << std::endl;
