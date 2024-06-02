@@ -1,17 +1,19 @@
 #include <Windows.h>
 #include <iostream>
 #include <cassert>
+#include <functional>
 
-// oh guys, as a linux developer, it is too hard to understand...
+// ok guys, it is too hard to understand for me now...
 
 
 static const WCHAR* clipboardWatcherTitle = L"WinClipClipboardWatcher";
-static void(*on_clipboard_changed)();
+static std::function<void()>  on_clipboard_changed;
 
 // main window procedure funcion
 static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 	case WM_CLIPBOARDUPDATE:
+
 		assert(on_clipboard_changed != nullptr);
 		on_clipboard_changed();
 		break;
@@ -25,7 +27,6 @@ static int create_windowsless_window() {
 	wc.lpfnWndProc = windows_procedure;
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.lpszClassName = clipboardWatcherTitle;
-
 	if (!RegisterClassW(&wc)) {
 		std::cerr << "register window failed." << std::endl;
 		return 1;
@@ -49,7 +50,7 @@ static int create_windowsless_window() {
 	return (int)msg.wParam;
 }
 
-int create_watch(void(*func_callback)()) {
+int create_watch(std::function<void()> func_callback) {
 	on_clipboard_changed = func_callback;
 	return create_windowsless_window();
 };

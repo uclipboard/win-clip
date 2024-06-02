@@ -5,7 +5,16 @@ static const std::string copy_suffix{ "win-copy" };
 static const std::string paste_suffix{ "win-paste" };
 static const std::string ext_execute{ ".exe" };
 
-parser::parser(int argc, char* argv[]) : prog_name(argv[0]), help_opt(false), UTF8IO_opt(false), newline_opt(false) {
+parser::parser(int argc, char* argv[]) : 
+	args{},
+	prog_name(argv[0]), 
+	msg_opt{ "" },
+	watch_cmd{""},
+	sub_command{ "" },
+	help_opt(false),
+	UTF8IO_opt(false), 
+	newline_opt(false)
+{
 	for (int i = 0; i < argc; ++i)
 		args.push_back(std::string(argv[i]));
 
@@ -22,10 +31,10 @@ parser::parser(int argc, char* argv[]) : prog_name(argv[0]), help_opt(false), UT
 		args.insert(args.begin() + 1, "paste");
 	}
 	// sub command
-	sub_command = args[1];
+	sub_command = args.size() == 1? "": args[1];
 
 	// options
-	for (auto arg = args.begin() + 2; arg != args.end(); ++arg) {
+	for (auto arg = args.begin() + 2; arg < args.end(); ++arg) {
 		if (*arg == "-h") help_opt = true;
 		else if (*arg == "-u") UTF8IO_opt = true;
 		else if (*arg == "-n") newline_opt = true;

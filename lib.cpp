@@ -81,6 +81,7 @@ int execute_program_args(std::string command, bool UTF8_in, bool wait = false) {
 		delete[] lpCommandLine;
 		return -1;
 	}
+
 	if (wait) {
 		WaitForSingleObject(pi.hProcess, INFINITE);
 	}
