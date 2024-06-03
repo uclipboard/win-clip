@@ -45,6 +45,9 @@ static int create_windowsless_window() {
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+		// In this process, some received but not handled msgs may be dropped by PeekMessage, 
+		// but the clupboard update event isn't a high frequency event.So I'd better take it easy
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)); //drop the msgs received during processing of current msg
 	}
 
 	return (int)msg.wParam;

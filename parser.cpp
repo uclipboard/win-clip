@@ -13,7 +13,8 @@ parser::parser(int argc, char* argv[]) :
 	sub_command{ "" },
 	help_opt(false),
 	UTF8IO_opt(false), 
-	newline_opt(false)
+	newline_opt(false),
+	block_opt(false)
 {
 	for (int i = 0; i < argc; ++i)
 		args.push_back(std::string(argv[i]));
@@ -38,6 +39,7 @@ parser::parser(int argc, char* argv[]) :
 		if (*arg == "-h") help_opt = true;
 		else if (*arg == "-u") UTF8IO_opt = true;
 		else if (*arg == "-n") newline_opt = true;
+		else if (*arg == "-b") block_opt = true;
 		else if (*arg == "-m") {
 			msg_opt = std::reduce(arg + 1, args.end(), std::string{},
 				[](auto acc, auto str) {
@@ -71,6 +73,7 @@ void parser::help() {
 	std::cout << "-u\t print or receive text will be treated as UTF-8 encoded. " << std::endl;
 	std::cout << "\t read UTF-8 encoding text from stdin and convert to ANSI (and copy to clipboard).\n\tread ANSI encoded text from clipboard, convert to UTF-8 encoding and print it to stdout." << std::endl;
 	std::cout << "-w\t execute the command after this arguments when system clipboard changed in `paste` mode." << std::endl;
+	std::cout << "-b\t blocking and waiting the watch command to stop in `paste watch` mode." << std::endl;
 	std::cout << std::endl << "example:" << std::endl;
 	std::cout << "win-clip -h \t display help." << std::endl;
 	std::cout << "win-clip copy -m hello world \t copy 'hello world' to system clipboard." << std::endl;
