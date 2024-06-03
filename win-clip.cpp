@@ -7,7 +7,6 @@
 #include <functional>
 #include "common.h"
 
-static const int reset_time = 200;
 
 void copy(std::string& arg_msg, bool isUTF8IN) {
 	std::string clipboard_data;

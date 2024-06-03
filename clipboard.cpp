@@ -3,6 +3,39 @@
 #include <string>
 #include "common.h"
 
+#define LAST_ERROR_CODE "("<<GetLastError()<<")"
+
+const static int DEFAULT_RETRY_NUMBER = 5;
+const static int DEFAULT_RETRY_DELAY_TIME = 100;
+
+static inline HANDLE retry_SetClipboardData(UINT uFormat,HANDLE hGlobal,int retry_time = DEFAULT_RETRY_NUMBER) {
+	for (int i = 0; i < retry_time; i++) {
+		auto ret = SetClipboardData(uFormat, hGlobal);
+		if (ret != nullptr) return ret;
+		Sleep(DEFAULT_RETRY_DELAY_TIME);
+	}
+	return nullptr;
+}
+
+static inline BOOL retry_OpenClipboard(HWND hWndNewOwner,int retry_time = DEFAULT_RETRY_NUMBER) {
+	for (int i = 0; i < retry_time; i++) {
+		auto ret = OpenClipboard(hWndNewOwner);
+		if (ret) return ret;
+		Sleep(DEFAULT_RETRY_DELAY_TIME);
+	}
+	return false;
+}
+
+static inline HANDLE retry_GetClipboardData(UINT uFormat, int retry_time = DEFAULT_RETRY_NUMBER) {
+	for (int i = 0; i < retry_time; i++) {
+		auto ret = GetClipboardData(uFormat);
+		if (ret != nullptr) return ret;
+		Sleep(DEFAULT_RETRY_DELAY_TIME);
+	}
+	return nullptr;
+	
+}
+
 int copy_UTF8_to_clipboard(std::string& msg) {
 
 	auto wmsg = convert_str_to_wstr(msg);
@@ -11,13 +44,13 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size * sizeof(WCHAR));
 	if (!hGlobal) {
-		std::cerr << "Failed to allocate memory" << std::endl;
+		std::cerr << "Failed to allocate memory"<< LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 
 	LPWSTR pGlobal = static_cast<LPWSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		std::cerr << "Failed to lock memory" << std::endl;
+		std::cerr << "Failed to lock memory" << LAST_ERROR_CODE << std::endl;
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -25,16 +58,16 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 	wcscpy_s(pGlobal, data_size, data);
 	GlobalUnlock(hGlobal);
 
-	if (!OpenClipboard(nullptr)) {
-		std::cerr << "Failed to open clipboard" << std::endl;
+	if (!retry_OpenClipboard(nullptr)) {
+		std::cerr << "Failed to open clipboard" << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 
 	EmptyClipboard();
 
 
-	if (SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
-		std::cerr << "Failed to set clipboard data" << std::endl;
+	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
+		std::cerr << "Failed to set clipboard data" << LAST_ERROR_CODE << std::endl;
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -51,13 +84,13 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size);
 	if (!hGlobal) {
-		std::cerr << "Failed to allocate memory" << std::endl;
+		std::cerr << "Failed to allocate memory" << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 
 	LPSTR pGlobal = static_cast<LPSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		std::cerr << "Failed to lock memory" << std::endl;
+		std::cerr << "Failed to lock memory" << LAST_ERROR_CODE << std::endl;
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -65,15 +98,15 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 	memcpy(pGlobal, data, data_size);
 	GlobalUnlock(hGlobal);
 
-	if (!OpenClipboard(nullptr)) {
-		std::cerr << "Failed to open clipboard" << std::endl;
+	if (!retry_OpenClipboard(nullptr)) {
+		std::cerr << "Failed to open clipboard" << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 
 	EmptyClipboard();
 
-	if (SetClipboardData(CF_TEXT, hGlobal) == nullptr) {
-		std::cerr << "Failed to set clipboard data" << std::endl;
+	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
+		std::cerr << "Failed to set clipboard data"<< LAST_ERROR_CODE << std::endl;
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -86,7 +119,7 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 
 // ascii content
 int get_clipboard_content(std::string& s) {
-	HANDLE hData = GetClipboardData(CF_TEXT);
+	HANDLE hData = retry_GetClipboardData(CF_TEXT);
 	if (hData == nullptr) {
 		std::cerr << "There is no data in the clipboard." << std::endl;
 		return 1;
@@ -121,12 +154,12 @@ int get_clipboard_content(HANDLE& hData, std::wstring& s) {
 int paste_from_clipboard(std::string& s, bool isUTF8) {
 	int call_return{};
 	// Open the clipboard
-	if (!OpenClipboard(nullptr)) {
+	if (!retry_OpenClipboard(nullptr)) {
 		std::cerr << "Unable to open the clipboard." << std::endl;
 		return 1;
 	}
 	// Try to get the clipboard data as CF_UNICODETEXT first
-	HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+	HANDLE hData = retry_GetClipboardData(CF_UNICODETEXT);
 	if (hData == nullptr) {
 		// If we can't get CF_UNICODETEXT, try getting CF_TEXT
 		call_return = get_clipboard_content(s);
