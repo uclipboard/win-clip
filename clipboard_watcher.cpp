@@ -5,7 +5,7 @@
 
 // ok guys, it is too hard to understand for me now...
 
-
+static const int shake_interval = 200;//ms
 static const WCHAR* clipboardWatcherTitle = L"WinClipClipboardWatcher";
 static std::function<void()>  on_clipboard_changed;
 
@@ -13,10 +13,18 @@ static std::function<void()>  on_clipboard_changed;
 static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
 	case WM_CLIPBOARDUPDATE:
+		KillTimer(hwnd, 1);
+		SetTimer(hwnd, 1, shake_interval, nullptr);
+		break;
 
+	case WM_TIMER:
+		//disappear shakes!
 		assert(on_clipboard_changed != nullptr);
 		on_clipboard_changed();
+		KillTimer(hwnd, 1);
+
 		break;
+
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
@@ -45,9 +53,6 @@ static int create_windowsless_window() {
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-		// In this process, some received but not handled msgs may be dropped by PeekMessage, 
-		// but the clupboard update event isn't a high frequency event.So I'd better take it easy
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)); //drop the msgs received during processing of current msg
 	}
 
 	return (int)msg.wParam;
