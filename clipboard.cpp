@@ -3,7 +3,6 @@
 #include <string>
 #include "common.h"
 
-#define LAST_ERROR_CODE "("<<GetLastError()<<")"
 
 const static int DEFAULT_RETRY_NUMBER = 5;
 const static int DEFAULT_RETRY_DELAY_TIME = 100;
@@ -121,13 +120,13 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 int get_clipboard_content(std::string& s) {
 	HANDLE hData = retry_GetClipboardData(CF_TEXT);
 	if (hData == nullptr) {
-		std::cerr << "There is no data in the clipboard." << std::endl;
+		std::cerr << "There is no data in the clipboard." << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
 	LPSTR cbText = static_cast<LPSTR>(GlobalLock(hData));
 	if (cbText == nullptr) {
-		std::cerr << "Unable to lock the clipboard data." << std::endl;
+		std::cerr << "Unable to lock the clipboard data." << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 	s = cbText;
@@ -139,7 +138,7 @@ int get_clipboard_content(HANDLE& hData, std::wstring& s) {
 	// Lock the clipboard data to get a pointer to it
 	LPWSTR wcbText = static_cast<LPWSTR>(GlobalLock(hData));
 	if (wcbText == nullptr) {
-		std::cerr << "Unable to lock the clipboard data." << std::endl;
+		std::cerr << "Unable to lock the clipboard data." << LAST_ERROR_CODE << std::endl;
 		return 1;
 
 	}
@@ -155,7 +154,7 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 	int call_return{};
 	// Open the clipboard
 	if (!retry_OpenClipboard(nullptr)) {
-		std::cerr << "Unable to open the clipboard." << std::endl;
+		std::cerr << "Unable to open the clipboard." << LAST_ERROR_CODE  << std::endl;
 		return 1;
 	}
 	// Try to get the clipboard data as CF_UNICODETEXT first

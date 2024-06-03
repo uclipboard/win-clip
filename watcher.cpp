@@ -2,11 +2,11 @@
 #include <iostream>
 #include <cassert>
 #include <functional>
-
+#include "common.h"
 // ok guys, it is too hard to understand for me now...
 
-static const int shake_interval = 200;//ms
-static const WCHAR* clipboardWatcherTitle = L"WinClipClipboardWatcher";
+static const int SHAKE_INTERVAL = 200;//ms
+static const WCHAR* CLIPBOARD_WATCHER_TITLE = L"WinClipClipboardWatcher";
 static std::function<void()>  on_clipboard_changed;
 
 // main window procedure funcion
@@ -14,7 +14,7 @@ static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam
 	switch (message) {
 	case WM_CLIPBOARDUPDATE:
 		KillTimer(hwnd, 1);
-		SetTimer(hwnd, 1, shake_interval, nullptr);
+		SetTimer(hwnd, 1, SHAKE_INTERVAL, nullptr);
 		break;
 
 	case WM_TIMER:
@@ -34,17 +34,17 @@ static int create_windowsless_window() {
 	WNDCLASSW wc = { 0 };
 	wc.lpfnWndProc = windows_procedure;
 	wc.hInstance = GetModuleHandle(NULL);
-	wc.lpszClassName = clipboardWatcherTitle;
+	wc.lpszClassName = CLIPBOARD_WATCHER_TITLE;
 	if (!RegisterClassW(&wc)) {
-		std::cerr << "register window failed." << std::endl;
+		std::cerr << "register window failed." << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 
 	// create windowless window
-	HWND hwnd = CreateWindowExW(0, clipboardWatcherTitle, NULL, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+	HWND hwnd = CreateWindowExW(0, CLIPBOARD_WATCHER_TITLE, NULL, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
 
 	if (!hwnd) {
-		std::cerr << "create window failed." << std::endl;
+		std::cerr << "create window failed." << LAST_ERROR_CODE << std::endl;
 		return 1;
 	}
 	AddClipboardFormatListener(hwnd);

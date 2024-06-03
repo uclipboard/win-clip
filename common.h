@@ -29,3 +29,6 @@ public:
 	void help();
 
 };
+
+
+#define LAST_ERROR_CODE "("<<GetLastError()<<")"
