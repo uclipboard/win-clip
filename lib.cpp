@@ -1,7 +1,8 @@
 #include <string>
 #include <Windows.h>
 #include <iostream>
-std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_PAGE = CP_UTF8) {
+#include "common.h"
+std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_PAGE) {
 	if (utf8string.empty()) return std::wstring();
 
 	int wc_size = MultiByteToWideChar(
@@ -14,7 +15,7 @@ std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_P
 	);
 
 	if (wc_size == 0) {
-		std::cerr << "Failed to get wideSzie" << std::endl;
+		print_error("Failed to get wideSzie",false);
 		return std::wstring();
 	}
 
@@ -31,7 +32,7 @@ std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_P
 	return wstr;
 }
 
-std::string convert_wstr_to_str(std::wstring& wstr, const int code_page = CP_ACP) {
+std::string convert_wstr_to_str(std::wstring& wstr, const int code_page) {
 
 	auto cs = wstr.c_str();
 	// it caculate out the c-style string end '\0'
@@ -47,14 +48,10 @@ std::string convert_wstr_to_str(std::wstring& wstr, const int code_page = CP_ACP
 	return s;
 }
 
-int execute_program_args(std::string command, bool UTF8_in, bool wait = false) {
+int execute_program_args(std::string command, bool wait) {
 	std::wstring ws;
-	if (UTF8_in) {
-		ws = convert_str_to_wstr(command, CP_UTF8);
-	}
-	else {
-		ws = convert_str_to_wstr(command, CP_ACP);
-	}
+	ws = convert_str_to_wstr(command, CP_ACP);
+
 	LPWSTR lpCommandLine = new WCHAR[ws.length() + 1]();
 	wcscpy_s(lpCommandLine, ws.length() + 1, ws.c_str());
 
@@ -77,7 +74,7 @@ int execute_program_args(std::string command, bool UTF8_in, bool wait = false) {
 		&pi
 	)) {
 
-		std::cerr << "CreateProcess failed (" << GetLastError() << ")\n";
+		print_error("CreateProcess failed ");
 		delete[] lpCommandLine;
 		return -1;
 	}
@@ -91,3 +88,4 @@ int execute_program_args(std::string command, bool UTF8_in, bool wait = false) {
 
 	return 0;
 }
+

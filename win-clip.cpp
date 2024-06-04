@@ -32,7 +32,7 @@ void copy(std::string& arg_msg, bool isUTF8IN) {
 
 std::function<void()> clipboard_update_action(std::string watch_cmd,bool block) {
 	return [watch_cmd, block]() {
-		execute_program_args(watch_cmd, false, block);
+		execute_program_args(watch_cmd,  block);
 		};
 }
 

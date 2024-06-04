@@ -6,3 +6,5 @@
 !*.sh
 !*.md
 !.gitignore
+!*.rc
+!LICENSE

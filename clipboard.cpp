@@ -43,13 +43,13 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size * sizeof(WCHAR));
 	if (!hGlobal) {
-		std::cerr << "Failed to allocate memory" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to allocate memory");
 		return 1;
 	}
 
 	LPWSTR pGlobal = static_cast<LPWSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		std::cerr << "Failed to lock memory" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to lock memory");
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -58,7 +58,7 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 	GlobalUnlock(hGlobal);
 
 	if (!retry_OpenClipboard(nullptr)) {
-		std::cerr << "Failed to open clipboard" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to open clipboard");
 		return 1;
 	}
 
@@ -66,7 +66,7 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 
 
 	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
-		std::cerr << "Failed to set clipboard data" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to set clipboard data");
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -83,13 +83,13 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size);
 	if (!hGlobal) {
-		std::cerr << "Failed to allocate memory" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to allocate memory");
 		return 1;
 	}
 
 	LPSTR pGlobal = static_cast<LPSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		std::cerr << "Failed to lock memory" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to lock memory");
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -98,14 +98,14 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 	GlobalUnlock(hGlobal);
 
 	if (!retry_OpenClipboard(nullptr)) {
-		std::cerr << "Failed to open clipboard" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to open clipboard");
 		return 1;
 	}
 
 	EmptyClipboard();
 
 	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
-		std::cerr << "Failed to set clipboard data" << LAST_ERROR_CODE << std::endl;
+		print_error("Failed to set clipboard data");
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -120,13 +120,13 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 int get_clipboard_content(std::string& s) {
 	HANDLE hData = retry_GetClipboardData(CF_TEXT);
 	if (hData == nullptr) {
-		std::cerr << "There is no data in the clipboard." << LAST_ERROR_CODE << std::endl;
+		print_error("There is no data in the clipboard.");
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
 	LPSTR cbText = static_cast<LPSTR>(GlobalLock(hData));
 	if (cbText == nullptr) {
-		std::cerr << "Unable to lock the clipboard data." << LAST_ERROR_CODE << std::endl;
+		print_error("Unable to lock the clipboard data.");
 		return 1;
 	}
 	s = cbText;
@@ -138,7 +138,7 @@ int get_clipboard_content(HANDLE& hData, std::wstring& s) {
 	// Lock the clipboard data to get a pointer to it
 	LPWSTR wcbText = static_cast<LPWSTR>(GlobalLock(hData));
 	if (wcbText == nullptr) {
-		std::cerr << "Unable to lock the clipboard data." << LAST_ERROR_CODE << std::endl;
+		print_error("Unable to lock the clipboard data.");
 		return 1;
 
 	}
@@ -154,7 +154,7 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 	int call_return{};
 	// Open the clipboard
 	if (!retry_OpenClipboard(nullptr)) {
-		std::cerr << "Unable to open the clipboard." << LAST_ERROR_CODE << std::endl;
+		print_error("Unable to open the clipboard.");
 		return 1;
 	}
 
@@ -171,14 +171,15 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 			}
 		}
 		else {
-			std::cerr << "Unable to read clipboard data as unicode text"<<LAST_ERROR_CODE<< std::endl;
+			call_return = 1;
+			print_error("Unable to read clipboard data as unicode text");
 		}
 	}
 	else if (IsClipboardFormatAvailable(CF_TEXT)) {
 		call_return = get_clipboard_content(s);
 	}
 	else {
-		std::cerr<<"Unable to recognise the clipboard data type"<<std::endl;
+		print_error("Unable to recognise the clipboard data type",false);
 		call_return = 1;
 	}
 	CloseClipboard();
