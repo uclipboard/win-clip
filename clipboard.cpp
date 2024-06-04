@@ -35,9 +35,8 @@ static inline HANDLE retry_GetClipboardData(UINT uFormat, int retry_time = DEFAU
 
 }
 
-int copy_UTF8_to_clipboard(std::string& msg) {
+int copy_data_to_clipboard(std::wstring& wmsg) {
 
-	auto wmsg = convert_str_to_wstr(msg);
 	auto data = wmsg.c_str();
 	auto data_size = wmsg.size() + 1;
 
@@ -76,7 +75,7 @@ int copy_UTF8_to_clipboard(std::string& msg) {
 	return 0;
 
 }
-int copy_ANSI_to_clipboard(std::string& msg) {
+int copy_data_to_clipboard(std::string& msg) {
 
 	auto data = msg.c_str();
 	auto data_size = strlen(data) + 1;

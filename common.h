@@ -4,10 +4,12 @@
 #include <vector>
 #include <functional>
 #include <iostream>
-int copy_UTF8_to_clipboard(std::string& msg);
-int copy_ANSI_to_clipboard(std::string& msg);
+int copy_data_to_clipboard(std::string& msg);
+int copy_data_to_clipboard(std::wstring& wmsg);
+
 int get_clipboard_content(std::string& s);
-int get_clipboard_content(HANDLE& hData, std::wstring& s);
+int get_clipboard_content(std::wstring& ws);
+
 int paste_from_clipboard(std::string& s, bool isUTF8);
 int create_watch(std::function<void()> func_callback);
 std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_PAGE = CP_UTF8);

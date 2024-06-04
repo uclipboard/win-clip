@@ -20,10 +20,11 @@ void copy(std::string& arg_msg, bool isUTF8IN) {
 	}
 	int ret;
 	if (isUTF8IN) {
-		ret = copy_UTF8_to_clipboard(clipboard_data);
+		auto wmsg = convert_str_to_wstr(clipboard_data);
+		ret = copy_data_to_clipboard(wmsg);
 	}
 	else {
-		ret = copy_ANSI_to_clipboard(clipboard_data);
+		ret = copy_data_to_clipboard(clipboard_data);
 
 	}
 	exit(ret);

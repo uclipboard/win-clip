@@ -49,11 +49,9 @@ std::string convert_wstr_to_str(std::wstring& wstr, const int code_page) {
 }
 
 int execute_program_args(std::string command, bool wait) {
-	std::wstring ws;
-	ws = convert_str_to_wstr(command, CP_ACP);
+	std::wstring ws = convert_str_to_wstr(command, CP_ACP);
 
-	LPWSTR lpCommandLine = new WCHAR[ws.length() + 1]();
-	wcscpy_s(lpCommandLine, ws.length() + 1, ws.c_str());
+	LPWSTR lpCommandLine = const_cast<LPWSTR>(ws.c_str());
 
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&pi, sizeof(pi));
@@ -75,7 +73,6 @@ int execute_program_args(std::string command, bool wait) {
 	)) {
 
 		print_error("CreateProcess failed ");
-		delete[] lpCommandLine;
 		return -1;
 	}
 
@@ -84,7 +81,6 @@ int execute_program_args(std::string command, bool wait) {
 	}
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
-	delete[] lpCommandLine;
 
 	return 0;
 }
