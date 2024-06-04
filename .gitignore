@@ -5,6 +5,7 @@
 !*.c
 !*.sh
 !*.md
-!.gitignore
+!.git*
 !*.rc
 !LICENSE
+!win-clip.ico
