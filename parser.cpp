@@ -33,7 +33,10 @@ parser::parser(int argc, char* argv[]) :
 	}
 	// sub command
 	sub_command = args.size() == 1? "": args[1];
-
+	if (sub_command.empty()) {
+		help();
+		exit(1);
+	}
 	// options
 	for (auto arg = args.begin() + 2; arg < args.end(); ++arg) {
 		if (*arg == "-h") help_opt = true;
