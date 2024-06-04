@@ -104,7 +104,7 @@ int copy_ANSI_to_clipboard(std::string& msg) {
 
 	EmptyClipboard();
 
-	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
+	if (retry_SetClipboardData(CF_TEXT, hGlobal) == nullptr) {
 		print_error("Failed to set clipboard data");
 		GlobalFree(hGlobal);
 		CloseClipboard();
@@ -133,8 +133,14 @@ int get_clipboard_content(std::string& s) {
 	GlobalUnlock(hData);
 	return 0;
 }
+
 // wchar content
-int get_clipboard_content(HANDLE& hData, std::wstring& s) {
+int get_clipboard_content(std::wstring& s) {
+	HANDLE hData = retry_GetClipboardData(CF_UNICODETEXT);
+	if (hData == nullptr) {
+		print_error("Unable to read clipboard data as unicode text");
+		return 1;
+	}
 	// Lock the clipboard data to get a pointer to it
 	LPWSTR wcbText = static_cast<LPWSTR>(GlobalLock(hData));
 	if (wcbText == nullptr) {
@@ -159,21 +165,14 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 	}
 
 	if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
-		HANDLE hData = retry_GetClipboardData(CF_UNICODETEXT);
-		if (hData != nullptr) {
 			std::wstring ws;
-			call_return = get_clipboard_content(hData, ws);
+			call_return = get_clipboard_content(ws);
 			if (isUTF8) {
 				s = convert_wstr_to_str(ws, CP_UTF8);
 			}
 			else {
 				s = convert_wstr_to_str(ws);
 			}
-		}
-		else {
-			call_return = 1;
-			print_error("Unable to read clipboard data as unicode text");
-		}
 	}
 	else if (IsClipboardFormatAvailable(CF_TEXT)) {
 		call_return = get_clipboard_content(s);
