@@ -42,13 +42,13 @@ int copy_data_to_clipboard(std::wstring& wmsg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size * sizeof(WCHAR));
 	if (!hGlobal) {
-		print_error("Failed to allocate memory");
+		print_error("Failed to allocate memory.");
 		return 1;
 	}
 
 	LPWSTR pGlobal = static_cast<LPWSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		print_error("Failed to lock memory");
+		print_error("Failed to lock memory.");
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -57,7 +57,7 @@ int copy_data_to_clipboard(std::wstring& wmsg) {
 	GlobalUnlock(hGlobal);
 
 	if (!retry_OpenClipboard(nullptr)) {
-		print_error("Failed to open clipboard");
+		print_error("Failed to open clipboard.");
 		return 1;
 	}
 
@@ -65,7 +65,7 @@ int copy_data_to_clipboard(std::wstring& wmsg) {
 
 
 	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
-		print_error("Failed to set clipboard data");
+		print_error("Failed to set clipboard data.");
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -82,13 +82,13 @@ int copy_data_to_clipboard(std::string& msg) {
 
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, data_size);
 	if (!hGlobal) {
-		print_error("Failed to allocate memory");
+		print_error("Failed to allocate memory.");
 		return 1;
 	}
 
 	LPSTR pGlobal = static_cast<LPSTR>(GlobalLock(hGlobal));
 	if (!pGlobal) {
-		print_error("Failed to lock memory");
+		print_error("Failed to lock memory.");
 		GlobalFree(hGlobal);
 		return 1;
 	}
@@ -97,14 +97,14 @@ int copy_data_to_clipboard(std::string& msg) {
 	GlobalUnlock(hGlobal);
 
 	if (!retry_OpenClipboard(nullptr)) {
-		print_error("Failed to open clipboard");
+		print_error("Failed to open clipboard.");
 		return 1;
 	}
 
 	EmptyClipboard();
 
 	if (retry_SetClipboardData(CF_TEXT, hGlobal) == nullptr) {
-		print_error("Failed to set clipboard data");
+		print_error("Failed to set clipboard data.");
 		GlobalFree(hGlobal);
 		CloseClipboard();
 		return 1;
@@ -137,7 +137,7 @@ int get_clipboard_content(std::string& s) {
 int get_clipboard_content(std::wstring& s) {
 	HANDLE hData = retry_GetClipboardData(CF_UNICODETEXT);
 	if (hData == nullptr) {
-		print_error("Unable to read clipboard data as unicode text");
+		print_error("Unable to read clipboard data as unicode text.");
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
@@ -153,7 +153,9 @@ int get_clipboard_content(std::wstring& s) {
 	return 0;
 }
 
-
+static inline bool is_clipboard_empty() {
+	return !(EnumClipboardFormats((UINT)0));
+}
 
 int paste_from_clipboard(std::string& s, bool isUTF8) {
 	int call_return{};
@@ -162,7 +164,10 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		print_error("Unable to open the clipboard.");
 		return 1;
 	}
-
+	if (is_clipboard_empty()) {
+		print_error("Clipboard is empty.", false);
+		return 1;
+	}
 	if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
 			std::wstring ws;
 			call_return = get_clipboard_content(ws);
@@ -177,9 +182,10 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		call_return = get_clipboard_content(s);
 	}
 	else {
-		print_error("Unable to recognise the clipboard data type",false);
+		print_error("Unable to recognise the clipboard data type.",false);
 		call_return = 1;
 	}
+	
 	CloseClipboard();
 	return call_return;
 }
