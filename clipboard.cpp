@@ -119,7 +119,7 @@ int copy_data_to_clipboard(std::string& msg) {
 int get_clipboard_content(std::string& s) {
 	HANDLE hData = retry_GetClipboardData(CF_TEXT);
 	if (hData == nullptr) {
-		print_error("There is no data in the clipboard.");
+		print_error("Unable to read clipboard data as plain text.");
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
