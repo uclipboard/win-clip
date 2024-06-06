@@ -15,7 +15,7 @@ std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_P
 	);
 
 	if (wc_size == 0) {
-		print_error("Failed to get wideSzie",false);
+		print_error("Failed to get wideSzie.",false);
 		return std::wstring();
 	}
 
@@ -72,7 +72,7 @@ int execute_program_args(std::string command, bool wait) {
 		&pi
 	)) {
 
-		print_error("CreateProcess failed ");
+		print_error("CreateProcess failed.");
 		return -1;
 	}
 

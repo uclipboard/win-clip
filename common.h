@@ -38,5 +38,8 @@ static inline void print_error(std::string s, bool get_last_error = true) {
 	if (get_last_error) {
 		std::cout << "[" << GetLastError() << "]";
 	}
-	std::cout << s<<std::endl;
+	else {
+		std::cout << "[" << -1 << "]";
+	}
+	std::cout << s <<std::endl;
 }
