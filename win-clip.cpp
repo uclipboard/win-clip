@@ -31,16 +31,19 @@ void copy(std::string& arg_msg, bool isUTF8IN) {
 }
 
 
-std::function<void()> clipboard_update_action(std::string watch_cmd,bool block) {
-	return [watch_cmd, block]() {
-		execute_program_args(watch_cmd,  block);
+std::function<void()> clipboard_update_action(std::string watch_cmd,bool block,bool isUTF8) {
+	return [watch_cmd, block,isUTF8]() {
+		std::string clipboard{};
+		int ret = paste_from_clipboard(clipboard, isUTF8);
+		if (ret) {
+			return -1;
+		}
+		return execute_program_args(watch_cmd,  block, clipboard);
 		};
 }
 
 void paste(bool newline, bool isUTF8) {
 	std::string clipboard{};
-
-
 	int ret = paste_from_clipboard(clipboard, isUTF8);
 
 	if (ret) {
@@ -59,10 +62,10 @@ void paste(bool newline, bool isUTF8) {
 	exit(0);
 }
 
-void paset_watch(std::string watch_cmd, bool block) {
+void paset_watch(std::string watch_cmd, bool wait, bool isUTF8) {
 
 	exit(
-		create_watch(clipboard_update_action(watch_cmd, block))
+		create_watch(clipboard_update_action(watch_cmd, wait,isUTF8))
 	);
 }
 
@@ -82,7 +85,7 @@ int main(int argc, char* argv[]) {
 		if(parser.watch_cmd == "")
 			paste(parser.newline_opt, parser.UTF8IO_opt);
 		else {
-			paset_watch(parser.watch_cmd, parser.block_opt);
+			paset_watch(parser.watch_cmd, parser.block_opt,parser.UTF8IO_opt);
 		}
 	}
 	parser.help();

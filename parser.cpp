@@ -75,7 +75,7 @@ void parser::help() {
 	std::cout << "-m\t pass message you want to copy to system clipboard in `copy` mode." << std::endl;
 	std::cout << "-u\t print or receive text will be treated as UTF-8 encoded. " << std::endl;
 	std::cout << "\t read UTF-8 encoding text from stdin and convert to ANSI (and copy to clipboard).\n\tread ANSI encoded text from clipboard, convert to UTF-8 encoding and print it to stdout." << std::endl;
-	std::cout << "-w\t execute the command after this arguments when system clipboard changed in `paste` mode." << std::endl;
+	std::cout << "-w\t execute the command and passs clipboard content to the stdin of command which after this arguments when system clipboard changed in `paste` mode." << std::endl;
 	std::cout << "-b\t blocking and waiting the watch command to stop in `paste watch` mode.(it's recommend to add `-b` when you use `-w win-clinp paste` or somthing contains mutex actions)" << std::endl;
 	std::cout << std::endl << "example:" << std::endl;
 	std::cout << "win-clip -h \t display help." << std::endl;
@@ -85,6 +85,7 @@ void parser::help() {
 	std::cout << std::endl;
 	std::cout << "win-clip paste \t print the latest message from system clipboard." << std::endl;
 	std::cout << "win-clip paste -n \t print the latest message from system clipboard with newline." << std::endl;
+	std::cout << "win-clip paste -w cat.exe \t pass clipboard to `cat.exe`'s stdin content when clipboard modified." << std::endl;
 	std::cout << "By the way, win-clip supports alias name, "
 		"so you can hard or soft link to to some special name and use it in this way:" << std::endl;
 	std::cout << std::endl;
@@ -95,6 +96,4 @@ void parser::help() {
 	std::cout << "echo hello world | win-copy" << std::endl;
 	std::cout << "win-copy -m hello world" << std::endl;
 	std::cout << "win-paste [-h]" << std::endl;
-
-
 }

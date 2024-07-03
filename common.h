@@ -14,7 +14,7 @@ int paste_from_clipboard(std::string& s, bool isUTF8);
 int create_watch(std::function<void()> func_callback);
 std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_PAGE = CP_UTF8);
 std::string convert_wstr_to_str(std::wstring& wstr, const int code_page = CP_ACP);
-int execute_program_args(std::string command, bool wait = false);
+int execute_program_args(std::string command, bool wait, std::string stdin_data);
 int write_raw_data_to_stdout(std::string& s);
 
 class parser {
