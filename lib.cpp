@@ -85,3 +85,18 @@ int execute_program_args(std::string command, bool wait) {
 	return 0;
 }
 
+int write_raw_data_to_stdout(std::string& s) {
+	HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOutput == INVALID_HANDLE_VALUE) {
+		print_error("Error getting handle to output");
+		return 1;
+	}
+
+	DWORD written;
+	if (!WriteFile(hOutput, s.c_str(), s.size(), &written, nullptr)) {
+		print_error("Error writing to output"); 
+		return 1;
+	}
+
+	return 0;
+}

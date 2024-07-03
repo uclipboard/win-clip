@@ -46,12 +46,14 @@ void paste(bool newline, bool isUTF8) {
 	if (ret) {
 		exit(ret);
 	}
-	std::cout << clipboard;
+
+	ret = write_raw_data_to_stdout(clipboard);
+	if (ret) {
+		exit(ret);
+	}
+
 	if (newline) {
 		std::cout << std::endl;
-	}
-	else {
-		std::cout << std::flush;
 	}
 
 	exit(0);
