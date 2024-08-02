@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <iostream>
 #include "common.h"
+
+
 std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_PAGE) {
 	if (utf8string.empty()) return std::wstring();
 
@@ -15,7 +17,7 @@ std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_P
 	);
 
 	if (wc_size == 0) {
-		print_error("Failed to get wideSzie.",false);
+		print_error("Failed to get wideSzie.",ERRCODE_CONVERT_WIDE_SIZE_FAILED);
 		return std::wstring();
 	}
 
@@ -130,16 +132,17 @@ int execute_program_args(std::string command, bool wait, std::string stdin_data)
     return 0;
 }
 
+// print raw byte to stdout without any transfer('\n' to '\r\n')
 int write_raw_data_to_stdout(std::string& s) {
 	HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (hOutput == INVALID_HANDLE_VALUE) {
-		print_error("Error getting handle to output");
+		print_error("Error getting handle to output.");
 		return 1;
 	}
 
 	DWORD written;
     if (!WriteFile(hOutput, s.c_str(), static_cast<DWORD>(s.size()), &written, nullptr)) {
-		print_error("Error writing to output"); 
+		print_error("Error writing to output."); 
 		return 1;
 	}
 

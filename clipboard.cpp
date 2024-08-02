@@ -3,7 +3,6 @@
 #include <string>
 #include "common.h"
 
-
 const static int DEFAULT_RETRY_NUMBER = 5;
 const static int DEFAULT_RETRY_DELAY_TIME = 100;
 
@@ -165,7 +164,7 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		return 1;
 	}
 	if (is_clipboard_empty()) {
-		print_error("Clipboard is empty.", false);
+		print_error("Clipboard is empty.", ERRCODE_CLIPBOARD_EMPTY);
 		return 1;
 	}
 	if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
@@ -182,7 +181,7 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		call_return = get_clipboard_content(s);
 	}
 	else {
-		print_error("Unable to recognise the clipboard data type.",false);
+		print_error("Unable to recognise the clipboard data type.",ERRCODE_CLIPBOARD_DATA_TYPE_UNKNOWN);
 		call_return = 1;
 	}
 	

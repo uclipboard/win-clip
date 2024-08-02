@@ -36,7 +36,7 @@ static int create_windowsless_window() {
 	wc.hInstance = GetModuleHandle(NULL);
 	wc.lpszClassName = CLIPBOARD_WATCHER_TITLE;
 	if (!RegisterClassW(&wc)) {
-		print_error("register window failed.");
+		print_error("Register window failed.");
 		return 1;
 	}
 
@@ -44,7 +44,7 @@ static int create_windowsless_window() {
 	HWND hwnd = CreateWindowExW(0, CLIPBOARD_WATCHER_TITLE, NULL, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
 
 	if (!hwnd) {
-		print_error("create window failed.");
+		print_error("Create window failed.");
 		return 1;
 	}
 	AddClipboardFormatListener(hwnd);

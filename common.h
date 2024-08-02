@@ -4,6 +4,8 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+#include <format>
+
 int copy_data_to_clipboard(std::string& msg);
 int copy_data_to_clipboard(std::wstring& wmsg);
 
@@ -33,13 +35,17 @@ public:
 
 };
 
+const static int ERRCODE_UNKNOWN = -1;
+const static int ERRCODE_CLIPBOARD_EMPTY = -2;
+const static int ERRCODE_CLIPBOARD_DATA_TYPE_UNKNOWN = -3;
+const static int ERRCODE_CONVERT_WIDE_SIZE_FAILED = -4;
+
+
 
 static inline void print_error(std::string s, bool get_last_error = true) {
-	if (get_last_error) {
-		std::cerr << "[" << GetLastError() << "]";
-	}
-	else {
-		std::cerr << "[" << -1 << "]";
-	}
-	std::cerr << s <<std::endl;
+	std::cerr << std::format("[{}]", get_last_error ? GetLastError() : ERRCODE_UNKNOWN) << s << std::endl; 
+}
+
+static inline void print_error(std::string s, int error_code) {
+	std::cerr << std::format("[{}]", error_code) << s << std::endl;
 }
