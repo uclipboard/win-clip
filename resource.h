@@ -6,7 +6,7 @@
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 3
-#define PATCH_VERSION 0
+#define PATCH_VERSION 1
 
 #define STRINGIFY(x) #x
 #define VERSION_JOIN(x, y, z) STRINGIFY(x) "." STRINGIFY(y) "." STRINGIFY(z)

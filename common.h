@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 #include <iostream>
-#include <format>
 
 int copy_data_to_clipboard(std::string& msg);
 int copy_data_to_clipboard(std::wstring& wmsg);
@@ -42,10 +41,12 @@ const static int ERRCODE_CONVERT_WIDE_SIZE_FAILED = -4;
 
 
 
-static inline void print_error(std::string s, bool get_last_error = true) {
-	std::cerr << std::format("[{}]", get_last_error ? GetLastError() : ERRCODE_UNKNOWN) << s << std::endl; 
+static inline void print_error(std::string s, int error_code) {
+	std::cerr << "[" << error_code << "]" << s << std::endl;
 }
 
-static inline void print_error(std::string s, int error_code) {
-	std::cerr << std::format("[{}]", error_code) << s << std::endl;
+static inline void print_error(std::string s, bool get_last_error = true) {
+	// int type is enough to save Windows error code now
+	int code = get_last_error ? GetLastError() : ERRCODE_UNKNOWN;
+	print_error(s,code);
 }
