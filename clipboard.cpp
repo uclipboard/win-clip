@@ -163,11 +163,11 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		print_error("Unable to open the clipboard.");
 		return 1;
 	}
-	if (is_clipboard_empty()) {
+	else if (is_clipboard_empty()) {
 		print_error("Clipboard is empty.", ERRCODE_CLIPBOARD_EMPTY);
-		return 1;
+		call_return = 1;
 	}
-	if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
+	else if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
 			std::wstring ws;
 			call_return = get_clipboard_content(ws);
 			if (isUTF8) {
