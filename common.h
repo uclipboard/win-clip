@@ -29,6 +29,7 @@ public:
 	bool UTF8IO_opt;
 	bool help_opt;
 	bool block_opt;
+	bool watch_opt;
 	parser(int argc, char* argv[]);
 	void help();
 

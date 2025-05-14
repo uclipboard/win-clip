@@ -5,8 +5,8 @@
 #pragma once
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 3
-#define PATCH_VERSION 2
+#define MINOR_VERSION 4
+#define PATCH_VERSION 0
 
 #define STRINGIFY(x) #x
 #define VERSION_JOIN(x, y, z) STRINGIFY(x) "." STRINGIFY(y) "." STRINGIFY(z)
