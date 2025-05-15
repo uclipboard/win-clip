@@ -17,6 +17,7 @@ std::wstring convert_str_to_wstr(const std::string& utf8string, const int CODE_P
 std::string convert_wstr_to_str(std::wstring& wstr, const int code_page = CP_ACP);
 int execute_program_args(std::string command, bool wait, std::string stdin_data);
 int write_raw_data_to_stdout(std::string& s);
+int random_int(int min, int max);
 
 class parser {
 public:
@@ -44,10 +45,18 @@ const static int ERRCODE_CONVERT_WIDE_SIZE_FAILED = -4;
 
 static inline void print_error(std::string s, int error_code) {
 	std::cerr << "[" << error_code << "]" << s << std::endl;
+
 }
 
 static inline void print_error(std::string s, bool get_last_error = true) {
 	// int type is enough to save Windows error code now
 	int code = get_last_error ? GetLastError() : ERRCODE_UNKNOWN;
-	print_error(s,code);
+	print_error(s, code);
 }
+
+
+#ifdef _DEBUG
+#define print_log(x) std::cerr << "::DBG_LOG::" __FUNCTION__ ": " << (x) << std::endl
+#else
+#define print_log(x)
+#endif

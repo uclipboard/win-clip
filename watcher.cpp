@@ -3,28 +3,28 @@
 #include <cassert>
 #include <functional>
 #include "common.h"
+
 // ok guys, it is too hard to understand for me now...
 
-static const int SHAKE_INTERVAL = 200;//ms
+static const int SHAKE_RANGE[] = { 100, 200 };//ms
 static const WCHAR* CLIPBOARD_WATCHER_TITLE = L"WinClipClipboardWatcher";
 static std::function<void()>  on_clipboard_changed;
 
 // main window procedure funcion
 static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	bool delay_trigger = true;
 	switch (message) {
 	case WM_CLIPBOARDUPDATE:
 		KillTimer(hwnd, 1);
-		SetTimer(hwnd, 1, SHAKE_INTERVAL, nullptr);
+		//to avoid repeated clipboard update
+		SetTimer(hwnd, 1, random_int(SHAKE_RANGE[0], SHAKE_RANGE[1]), NULL);
 		break;
 
 	case WM_TIMER:
-		//disappear shakes!
-		assert(on_clipboard_changed != nullptr);
+		assert(on_clipboard_changed != NULL);
 		on_clipboard_changed();
 		KillTimer(hwnd, 1);
-
 		break;
-
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}

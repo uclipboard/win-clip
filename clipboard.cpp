@@ -3,22 +3,36 @@
 #include <string>
 #include "common.h"
 
-const static int DEFAULT_RETRY_NUMBER = 5;
-const static int DEFAULT_RETRY_DELAY_TIME = 100;
+const static int DEFAULT_RETRY_NUMBER = 50;
+const static int DEFAULT_RETRY_DELAY_TIME = 200;
+
+
+static inline bool try_fix_error(DWORD error);
 
 static inline HANDLE retry_SetClipboardData(UINT uFormat, HANDLE hGlobal, int retry_time = DEFAULT_RETRY_NUMBER) {
 	for (int i = 0; i < retry_time; i++) {
 		auto ret = SetClipboardData(uFormat, hGlobal);
-		if (ret != nullptr) return ret;
+		if (ret != NULL) {
+			print_log("success");
+			return ret;
+		}
+		try_fix_error(GetLastError());
+		print_log("retry");
 		Sleep(DEFAULT_RETRY_DELAY_TIME);
 	}
-	return nullptr;
+	return NULL;
 }
 
 static inline BOOL retry_OpenClipboard(HWND hWndNewOwner, int retry_time = DEFAULT_RETRY_NUMBER) {
 	for (int i = 0; i < retry_time; i++) {
 		auto ret = OpenClipboard(hWndNewOwner);
-		if (ret) return ret;
+		if (ret)
+		{
+			print_log("success");
+			return ret;
+		}
+		try_fix_error(GetLastError());
+		print_log("retry");
 		Sleep(DEFAULT_RETRY_DELAY_TIME);
 	}
 	return false;
@@ -27,12 +41,57 @@ static inline BOOL retry_OpenClipboard(HWND hWndNewOwner, int retry_time = DEFAU
 static inline HANDLE retry_GetClipboardData(UINT uFormat, int retry_time = DEFAULT_RETRY_NUMBER) {
 	for (int i = 0; i < retry_time; i++) {
 		auto ret = GetClipboardData(uFormat);
-		if (ret != nullptr) return ret;
+		if (ret != NULL) {
+			print_log("success");
+			return ret;
+		}
+		try_fix_error(GetLastError());
+		print_log("retry");
 		Sleep(DEFAULT_RETRY_DELAY_TIME);
 	}
-	return nullptr;
+	return NULL;
 
 }
+
+static inline bool retry_is_clipboard_has_text(int retry_time = DEFAULT_RETRY_NUMBER) {
+	for (int i = 0; i < retry_time; i++) {
+		if (IsClipboardFormatAvailable(CF_UNICODETEXT) || IsClipboardFormatAvailable(CF_TEXT))
+		{
+			print_log("success");
+			return true;
+		}
+		try_fix_error(GetLastError());
+		print_log("retry");
+		Sleep(DEFAULT_RETRY_DELAY_TIME);
+	}
+	return false;
+}
+
+static inline bool try_fix_error(DWORD error) {
+	switch (error) {
+	case ERROR_CLIPBOARD_NOT_OPEN:
+		// reopen clipboard
+		if (retry_OpenClipboard(NULL)) {
+			print_log(": reopen clipboard");
+			return true;
+		}
+	}
+	// format the last error message
+#ifdef _DEBUG
+	LPVOID lpMsgBuf{};
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		error,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf,
+		0, NULL);
+	print_log("try fix error failed");
+	print_log((char*)lpMsgBuf);
+#endif
+	return false;
+}
+
 
 int copy_data_to_clipboard(std::wstring& wmsg) {
 
@@ -55,7 +114,7 @@ int copy_data_to_clipboard(std::wstring& wmsg) {
 	wcscpy_s(pGlobal, data_size, data);
 	GlobalUnlock(hGlobal);
 
-	if (!retry_OpenClipboard(nullptr)) {
+	if (!retry_OpenClipboard(NULL)) {
 		print_error("Failed to open clipboard.");
 		return 1;
 	}
@@ -63,7 +122,7 @@ int copy_data_to_clipboard(std::wstring& wmsg) {
 	EmptyClipboard();
 
 
-	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == nullptr) {
+	if (retry_SetClipboardData(CF_UNICODETEXT, hGlobal) == NULL) {
 		print_error("Failed to set clipboard data.");
 		GlobalFree(hGlobal);
 		CloseClipboard();
@@ -95,14 +154,14 @@ int copy_data_to_clipboard(std::string& msg) {
 	memcpy(pGlobal, data, data_size);
 	GlobalUnlock(hGlobal);
 
-	if (!retry_OpenClipboard(nullptr)) {
+	if (!retry_OpenClipboard(NULL)) {
 		print_error("Failed to open clipboard.");
 		return 1;
 	}
 
 	EmptyClipboard();
 
-	if (retry_SetClipboardData(CF_TEXT, hGlobal) == nullptr) {
+	if (retry_SetClipboardData(CF_TEXT, hGlobal) == NULL) {
 		print_error("Failed to set clipboard data.");
 		GlobalFree(hGlobal);
 		CloseClipboard();
@@ -117,13 +176,13 @@ int copy_data_to_clipboard(std::string& msg) {
 // ascii content
 int get_clipboard_content(std::string& s) {
 	HANDLE hData = retry_GetClipboardData(CF_TEXT);
-	if (hData == nullptr) {
+	if (hData == NULL) {
 		print_error("Unable to read clipboard data as plain text.");
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
 	LPSTR cbText = static_cast<LPSTR>(GlobalLock(hData));
-	if (cbText == nullptr) {
+	if (cbText == NULL) {
 		print_error("Unable to lock the clipboard data.");
 		return 1;
 	}
@@ -135,13 +194,13 @@ int get_clipboard_content(std::string& s) {
 // wchar content
 int get_clipboard_content(std::wstring& s) {
 	HANDLE hData = retry_GetClipboardData(CF_UNICODETEXT);
-	if (hData == nullptr) {
+	if (hData == NULL) {
 		print_error("Unable to read clipboard data as unicode text.");
 		return 1;
 	}
 	// Lock the clipboard data to get a pointer to it
 	LPWSTR wcbText = static_cast<LPWSTR>(GlobalLock(hData));
-	if (wcbText == nullptr) {
+	if (wcbText == NULL) {
 		print_error("Unable to lock the clipboard data.");
 		return 1;
 
@@ -152,39 +211,38 @@ int get_clipboard_content(std::wstring& s) {
 	return 0;
 }
 
-static inline bool is_clipboard_empty() {
-	return !(EnumClipboardFormats((UINT)0));
-}
+
 
 int paste_from_clipboard(std::string& s, bool isUTF8) {
+
 	int call_return{};
 	// Open the clipboard
-	if (!retry_OpenClipboard(nullptr)) {
+	if (!retry_OpenClipboard(NULL)) {
 		print_error("Unable to open the clipboard.");
 		return 1;
 	}
-	else if (is_clipboard_empty()) {
-		print_error("Clipboard is empty.", ERRCODE_CLIPBOARD_EMPTY);
+	else if (!retry_is_clipboard_has_text()) {
+		print_error("Can't get right format clipboard", ERRCODE_CLIPBOARD_EMPTY);
 		call_return = 1;
 	}
 	else if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
-			std::wstring ws;
-			call_return = get_clipboard_content(ws);
-			if (isUTF8) {
-				s = convert_wstr_to_str(ws, CP_UTF8);
-			}
-			else {
-				s = convert_wstr_to_str(ws);
-			}
+		std::wstring ws;
+		call_return = get_clipboard_content(ws);
+		if (isUTF8) {
+			s = convert_wstr_to_str(ws, CP_UTF8);
+		}
+		else {
+			s = convert_wstr_to_str(ws);
+		}
 	}
 	else if (IsClipboardFormatAvailable(CF_TEXT)) {
 		call_return = get_clipboard_content(s);
 	}
 	else {
-		print_error("Unable to recognise the clipboard data type.",ERRCODE_CLIPBOARD_DATA_TYPE_UNKNOWN);
+		print_error("Unable to recognise the clipboard data type.", ERRCODE_CLIPBOARD_DATA_TYPE_UNKNOWN);
 		call_return = 1;
 	}
-	
+
 	CloseClipboard();
 	return call_return;
 }

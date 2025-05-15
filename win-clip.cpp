@@ -49,7 +49,7 @@ std::function<void()> clipboard_update_action(std::string watch_cmd, bool block,
 			return;
 		}
 		if (execute_program_args(watch_cmd, block, clipboard)) {
-			std::cerr << "Execute command failed." << std::endl;
+			print_error("Execute command failed.", false);
 			return;
 		}
 		};
@@ -63,19 +63,18 @@ void paste(bool newline, bool isUTF8) {
 		exit(ret);
 	}
 
+	if (newline) {
+		clipboard += "\n";
+	}
 	ret = write_raw_data_to_stdout(clipboard);
 	if (ret) {
 		exit(ret);
 	}
 
-	if (newline) {
-		std::cout << std::endl;
-	}
-
 	exit(0);
 }
 
-void paste_watch(std::string watch_cmd, bool wait, bool isUTF8,bool newline) {
+void paste_watch(std::string watch_cmd, bool wait, bool isUTF8, bool newline) {
 
 	exit(
 		create_watch(clipboard_update_action(watch_cmd, wait, isUTF8, newline))
@@ -84,9 +83,7 @@ void paste_watch(std::string watch_cmd, bool wait, bool isUTF8,bool newline) {
 
 
 int main(int argc, char* argv[]) {
-
 	parser parser(argc, argv);
-
 
 	if (parser.help_opt) {
 		parser.help();
@@ -96,7 +93,7 @@ int main(int argc, char* argv[]) {
 	if (parser.sub_command == "copy") copy(parser.msg_opt, parser.UTF8IO_opt);
 	else if (parser.sub_command == "paste") {
 		if (parser.watch_opt)
-			paste_watch(parser.watch_cmd, parser.block_opt, parser.UTF8IO_opt,parser.newline_opt);
+			paste_watch(parser.watch_cmd, parser.block_opt, parser.UTF8IO_opt, parser.newline_opt);
 		else {
 			paste(parser.newline_opt, parser.UTF8IO_opt);
 		}
