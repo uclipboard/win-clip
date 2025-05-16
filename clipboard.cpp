@@ -3,7 +3,7 @@
 #include <string>
 #include "common.h"
 
-const static int DEFAULT_RETRY_NUMBER = 50;
+const static int DEFAULT_RETRY_NUMBER = 10;
 const static int DEFAULT_RETRY_DELAY_TIME = 200;
 
 
@@ -72,9 +72,13 @@ static inline bool try_fix_error(DWORD error) {
 	case ERROR_CLIPBOARD_NOT_OPEN:
 		// reopen clipboard
 		if (retry_OpenClipboard(NULL)) {
-			print_log(": reopen clipboard");
+			print_log("reopen clipboard");
 			return true;
 		}
+		break;
+	case ERROR_SUCCESS:
+		print_log("success, not a error");
+		return true;
 	}
 	// format the last error message
 #ifdef _DEBUG
@@ -86,8 +90,7 @@ static inline bool try_fix_error(DWORD error) {
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
-	print_log("try fix error failed");
-	print_log((char*)lpMsgBuf);
+	print_log("try fix error failed: " << (int)error << ": " << (char*)lpMsgBuf);
 #endif
 	return false;
 }
@@ -221,8 +224,9 @@ int paste_from_clipboard(std::string& s, bool isUTF8) {
 		print_error("Unable to open the clipboard.");
 		return 1;
 	}
-	else if (!retry_is_clipboard_has_text()) {
-		print_error("Can't get right format clipboard", ERRCODE_CLIPBOARD_EMPTY);
+	else if (!retry_is_clipboard_has_text(DEFAULT_RETRY_NUMBER / 2)) {
+		// it is possible that the clipboard is empty, so we need to retry less time
+		print_error("clipboard is empty", ERRCODE_CLIPBOARD_EMPTY);
 		call_return = 1;
 	}
 	else if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {

@@ -56,7 +56,7 @@ static inline void print_error(std::string s, bool get_last_error = true) {
 
 
 #ifdef _DEBUG
-#define print_log(x) std::cerr << "::DBG_LOG::" __FUNCTION__ ": " << (x) << std::endl
+#define print_log(x) std::cerr << "::DBG_LOG::" __FUNCTION__ ": " << x << std::endl
 #else
 #define print_log(x)
 #endif
