@@ -1,15 +1,37 @@
 # win-clip
 
-This is a part of uclipboard project.
+[![Build Status](https://github.com/dangjinghao/win-clip/workflows/Build/badge.svg)](https://github.com/dangjinghao/win-clip/actions)
+[![Release](https://github.com/dangjinghao/win-clip/workflows/Release/badge.svg)](https://github.com/dangjinghao/win-clip/releases)
 
-**How to use: download it from release page.**
+A command-line clipboard utility for Windows, part of the `uclipboard` project.
+
+**To get started, download the latest binary from the releases page.**
 
 ## Features
-- Support UTF-8 IO (paste/print ANSI encoded text after UTF-8 encoding converted or copy UTF-8 encoding data but converted to ANSI when copying into clipboard). This feature is very useful when you transfer the clipboard text across platforms.
-- Watch mode: execute a command and pass clipboard content to its stdin as soon as clipboard changed. Or just print clipboard content to stdout if the command is empty.
-## Bugs or Features
-win-clip supports `win-clip copy -m hello world` to copy `hello wolrd` to system clipboard.
-But in fact, it operate on an approach of concatenate text with whitespace as the separate.
-So If you want to copy some data contains no-whitespace invisible character, please use quotation. 
 
-See `win-clip.exe -h` for more details.
+- **UTF-8 Support**: Ensures seamless cross-platform text transfer by handling UTF-8 encoding conversions automatically.
+- **Watch Mode**: Monitors the clipboard for changes and can:
+  - Execute a command, passing the new clipboard content to its `stdin`.
+  - Print the new content to `stdout` if no command is specified.
+
+## Usage Notes
+
+When copying text from the command line, arguments are concatenated with a space.
+
+```shell
+# Copies "hello world" to the clipboard
+win-clip copy hello world
+```
+
+To copy text containing multiple spaces or special characters, enclose it in quotes.
+
+```shell
+# Copies "some data with  extra spaces"
+win-clip copy "some data with  extra spaces"
+```
+
+For a complete list of options, see the help menu:
+
+```shell
+win-clip.exe -h
+```
