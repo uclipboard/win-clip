@@ -35,7 +35,6 @@ jobs:
         msbuild win-clip.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=x64 /p:WarningLevel=3 /verbosity:minimal
 
     - name: Upload artifacts
-      if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v4
       with:
         name: win-clip-x64-${{ matrix.configuration }}
