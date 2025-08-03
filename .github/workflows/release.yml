@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup VS Dev Environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Restore NuGet packages
+      run: nuget restore win-clip.sln
+
+    - name: Build Release x64
+      run: |
+        msbuild win-clip.sln /p:Configuration=Release /p:Platform=x64 /p:WarningLevel=3 /verbosity:minimal
+
+    - name: Create release packages
+      run: |
+        New-Item -ItemType Directory -Force -Path "release"
+        
+        # Package x64 version
+        if (Test-Path "x64\Release\win-clip.exe") {
+          Copy-Item "x64\Release\win-clip.exe" "release\win-clip.exe"
+          Copy-Item "readme.md" "release\"
+          Copy-Item "LICENSE" "release\"
+          Compress-Archive -Path "release\win-clip.exe", "release\readme.md", "release\LICENSE" -DestinationPath "win-clip_x64.zip"
+        }
+
+    - name: Get tag name and prerelease check
+      id: tag
+      run: |
+        $tagName = $env:GITHUB_REF -replace 'refs/tags/', ''
+        echo "tag_name=$tagName" >> $env:GITHUB_OUTPUT
+        # Check if version starts with `v0.`
+        if ($tagName -match '^v0\.') {
+          echo "is_prerelease=true" >> $env:GITHUB_OUTPUT
+        } else {
+          echo "is_prerelease=false" >> $env:GITHUB_OUTPUT
+        }
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag_name }}
+        name: Release ${{ steps.tag.outputs.tag_name }}
+        draft: false
+        prerelease: ${{ steps.tag.outputs.is_prerelease == 'true' }}
+        files: win-clip_x64.zip
+        generate_release_notes: true
+        body: |
+          ## Changes
+          
+          This release contains the latest stable version of win-clip.
+          
+          ## Download
+          
+          - **win-clip_x64.zip**: For 64-bit Windows systems
+          
+          ## Installation
+          
+          1. Download the ZIP file
+          2. Extract the executable to a folder in your PATH
+          3. Run `win-clip.exe -h` to see usage instructions
