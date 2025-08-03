@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     runs-on: windows-latest
@@ -55,8 +58,6 @@ jobs:
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.tag.outputs.tag_name }}
         name: Release ${{ steps.tag.outputs.tag_name }}
@@ -65,10 +66,6 @@ jobs:
         files: win-clip_x64.zip
         generate_release_notes: true
         body: |
-          ## Changes
-          
-          This release contains the latest stable version of win-clip.
-          
           ## Download
           
           - **win-clip_x64.zip**: For 64-bit Windows systems
