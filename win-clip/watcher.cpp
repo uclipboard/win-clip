@@ -3,13 +3,15 @@
 #include <cassert>
 #include <functional>
 #include "common.h"
+#include <WtsApi32.h>
+
 
 // ok guys, it is too hard to understand for me now...
 
 static const int SHAKE_RANGE[] = { 100, 200 };//ms
 static const WCHAR* CLIPBOARD_WATCHER_TITLE = L"WinClipClipboardWatcher";
 static std::function<void()>  on_clipboard_changed;
-
+static std::function<void()> on_screen_unlocked;
 // main window procedure funcion
 static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	bool delay_trigger = true;
@@ -24,6 +26,12 @@ static LRESULT CALLBACK windows_procedure(HWND hwnd, UINT message, WPARAM wParam
 		assert(on_clipboard_changed != NULL);
 		on_clipboard_changed();
 		KillTimer(hwnd, 1);
+		break;
+	case WM_WTSSESSION_CHANGE:
+		if (wParam == WTS_SESSION_UNLOCK) {
+			assert(on_screen_unlocked != nullptr);
+			on_screen_unlocked();
+		}
 		break;
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
@@ -48,6 +56,15 @@ static int create_windowsless_window() {
 		return 1;
 	}
 	AddClipboardFormatListener(hwnd);
+	
+	print_log("Clipboard format listener added.");
+
+	if (!WTSRegisterSessionNotification(hwnd, NOTIFY_FOR_THIS_SESSION)) {
+		print_error("Register session notification failed.");
+	}
+
+	print_log("Clipboard watcher window created successfully.");
+
 	// msg loop
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
@@ -55,10 +72,17 @@ static int create_windowsless_window() {
 		DispatchMessage(&msg);
 	}
 
+	WTSUnRegisterSessionNotification(hwnd);
+
 	return (int)msg.wParam;
+}
+
+static void screen_unlock_notify() {
+	print_error("Screen unlocked.", ERRCODE_SCREEN_UNLCOKED_NOTIFY);
 }
 
 int create_watch(std::function<void()> func_callback) {
 	on_clipboard_changed = func_callback;
+	on_screen_unlocked = screen_unlock_notify;
 	return create_windowsless_window();
 };

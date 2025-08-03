@@ -1,11 +1,113 @@
-*
-!*.cpp
-!*.h
-!*.hpp
-!*.c
-!*.sh
-!*.md
-!.git*
-!*.rc
-!LICENSE
-!win-clip.ico
+# Visual Studio 生成的文件
+bin/
+obj/
+Debug/
+Release/
+x64/Debug/
+x64/Release/
+Win32/Debug/
+Win32/Release/
+
+# Visual Studio 用户特定文件
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# 构建结果
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# 编译器生成的文件
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Visual C++ 缓存文件
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Visual Studio 探查器
+*.psess
+*.vsp
+*.vspx
+
+# Windows 缩略图缓存
+Thumbs.db
+ehthumbs.db
+
+# 文件夹配置文件
+Desktop.ini
+
+# 临时文件
+*~
+*.swp
+*.swo
+
+# 包管理器
+packages/
+*.nupkg
+
+# 测试结果
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# 分析工具
+*.DotSettings
+
+# JetBrains
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# 发布包
+*.zip
+*.7z
+*.tar.gz
+*.rar
+
+# 但保留以下重要文件
+!*.exe.config
+!*.app.config
+
+# 保留发布文件夹结构（如果需要）
+# !release/

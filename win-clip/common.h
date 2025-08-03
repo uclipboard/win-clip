@@ -40,7 +40,8 @@ const static int ERRCODE_UNKNOWN = -1;
 const static int ERRCODE_CLIPBOARD_EMPTY = -2;
 const static int ERRCODE_CLIPBOARD_DATA_TYPE_UNKNOWN = -3;
 const static int ERRCODE_CONVERT_WIDE_SIZE_FAILED = -4;
-
+// in fact, this is not an error, but a notification code
+const static int ERRCODE_SCREEN_UNLCOKED_NOTIFY = -5;
 
 
 static inline void print_error(std::string s, int error_code) {
